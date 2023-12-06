@@ -38,7 +38,9 @@ impl HackParser{
     ) -> Result<Self, Box<dyn Error>> {
         args.next(); // Skip Path
         let file_name = args.next().unwrap_or_default();
-        println!("Parsing file: {}", &file_name);
+        if file_name.is_empty(){
+            return Err(Box::new(io::Error::new(io::ErrorKind::InvalidInput, "No filename provided.")));
+        }
         let file = File::open::<String>(file_name);
         let file = match file {
             Ok(f) => f,
@@ -98,7 +100,13 @@ impl HackParser{
 fn main() {
 
     let hp = HackParser::build(env::args());
-    let mut hp = hp.unwrap();
+    let mut hp = match hp {
+        Ok(hp) => hp,
+        Err(e) => {
+            println!("Error building parser. Error: {e}");
+            return;
+        }
+    };
 
     let _ = hp.advance();
 
